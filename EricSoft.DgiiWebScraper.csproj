@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Company>EricSoft</Company>
+    <Description>Librería para hacer Web Scraping a la página de la página de la DGII (Dirección General de Impuestos Internos) de la República Dominica, de modo que podamos acceder mediante interfaz de programación a las consultas públicas disponible para los ciudadanos en dicha página.</Description>
+    <PackageTags>dgii, scraper, rnc, htmlagilitypack, ericsoft</PackageTags>
+    <Authors>Ericson Frías</Authors>
+    <PackageReleaseNotes>Primera versión de esta libreria que solo expone la consulta de RNC o Cédula.</PackageReleaseNotes>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!--<VersionSuffix>0</VersionSuffix>-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.72" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>
