@@ -150,6 +150,65 @@ namespace EricSoft.DgiiWebScraper
         }
 
         /// <summary>
+        /// Consulta ncf
+        /// </summary>
+        public async Task<NcfResult> ConsultarNcfAsync(string rnc, string ncf)
+        {
+            NcfResult result = null;
+            
+            if (string.IsNullOrWhiteSpace(rnc))
+                throw new Exception("Especifique el RNC");
+
+            if (string.IsNullOrWhiteSpace(ncf))
+                throw new Exception("Especifique el NCF");
+
+            rnc = rnc.Trim().Replace("-", "");
+            ncf = ncf.Trim();
+
+            var data = await GetScrapingResultAsync(
+               url: _options.UrlNcf,
+               rnc: rnc,
+               buildPostData: (r, viewState, eventValidation, viewStateGenerator) =>
+                   new List<KeyValuePair<string, string>>
+                   {
+                        new KeyValuePair<string,string>("ctl00$smMain", "ctl00$upMainMaster|ctl00$cphMain$btnConsultar"),
+                        new KeyValuePair<string,string>("ctl00$cphMain$txtRNC", r),
+                        new KeyValuePair<string,string>("ctl00$cphMain$txtNCF", ncf),
+                        new KeyValuePair<string,string>("ctl00$cphMain$btnConsultar", "Buscar"),
+                        new KeyValuePair<string,string>("__EVENTTARGET", ""),
+                        new KeyValuePair<string,string>("__EVENTARGUMENT", ""),
+                        new KeyValuePair<string,string>("__VIEWSTATE", viewState),
+                        new KeyValuePair<string,string>("__VIEWSTATEGENERATOR", viewStateGenerator),
+                        new KeyValuePair<string,string>("__EVENTVALIDATION", eventValidation),
+                        new KeyValuePair<string,string>("__ASYNCPOST", "true"),
+                   },
+               dataTableXPath: "//div[@id='cphMain_pResultado']//table[contains(@class,'detailview')]"
+                               
+           ) ;
+
+            if ( data != null  && data.Count > 0)
+            {
+                result = new NcfResult
+                {
+                    RncCedula = data.ContainsKey(_options.NcfEtiqueta.RncCedula)
+                                ? data[_options.NcfEtiqueta.RncCedula] : "",
+                    Nombre = data.ContainsKey(_options.NcfEtiqueta.Nombre)
+                             ? data[_options.NcfEtiqueta.Nombre] : "",
+                    TipoComprobante = data.ContainsKey(_options.NcfEtiqueta.TipoComprobante)
+                                     ? data[_options.NcfEtiqueta.TipoComprobante] : "",
+                    Ncf = data.ContainsKey(_options.NcfEtiqueta.Ncf)
+                          ? data[_options.NcfEtiqueta.Ncf] : "",
+                    Estado = data.ContainsKey(_options.NcfEtiqueta.Estado)
+                          ? data[_options.NcfEtiqueta.Estado] : "",
+                    ValidoHasta = data.ContainsKey(_options.NcfEtiqueta.ValidoHasta)
+                          ? data[_options.NcfEtiqueta.ValidoHasta] : "",
+                };
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Método auxiliar genérico para evitar duplicar lógica en cada consulta.
         /// </summary>
         private async Task<Dictionary<string, string>> GetScrapingResultAsync(
@@ -205,6 +264,7 @@ namespace EricSoft.DgiiWebScraper
 
         private Dictionary<string, string> GetData(string responseHtml, string tableSelector)
         {
+
             //Cargar el HTML en HtmlAgilityPack
             var docResponse = new HtmlDocument();
             docResponse.LoadHtml(responseHtml);
@@ -225,7 +285,7 @@ namespace EricSoft.DgiiWebScraper
             {
                 foreach (var row in rows)
                 {
-                    var cells = row.SelectNodes("td");
+                    var cells = row.SelectNodes("td|th");
                     if (cells != null && cells.Count == 2)
                     {
                         // Decodificamos el HTML para quitar entidades como &#243;, &#233;, etc.
